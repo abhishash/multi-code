@@ -22,7 +22,7 @@ const QrScanner = () => {
     if (scanning) {
       html5QrcodeScannerRef.current = new Html5QrcodeScanner(
         "reader",
-        { fps: 10, qrbox: 250 },
+        { fps: 10, qrbox: 250, rememberLastUsedCamera: true } ,
         false
       );
 
@@ -31,8 +31,12 @@ const QrScanner = () => {
       function onScanSuccess(decodedText, decodedResult) {
         setScanResult(decodedText);
         setScanning(false);
-        html5QrcodeScannerRef.current.pause(true); // Clear the scanner and stop the camera
-        handleOpenModal();
+        console.log(html5QrcodeScannerRef.current.currentScanType,"scan-type");
+
+        if (html5QrcodeScannerRef.current.currentScanType != 1) {
+          html5QrcodeScannerRef.current.pause(true); // Clear the scanner and stop the camera
+        }
+        // handleOpenModal();
       }
 
       function onScanError(errorMessage) {
@@ -40,20 +44,25 @@ const QrScanner = () => {
       }
 
       return () => {
-        html5QrcodeScannerRef.current.clear().catch((error) => {
-          console.error("Failed to clear html5QrcodeScanner. ", error);
-        });
+        if (html5QrcodeScannerRef.current) {
+          html5QrcodeScannerRef.current.clear().catch((error) => {
+            console.error("Failed to clear html5QrcodeScanner. ", error);
+          });
+        }
       };
     }
   }, []);
 
   const handleResume = () => {
     setScanning(true);
-    html5QrcodeScannerRef.current.resume();
+    if (html5QrcodeScannerRef.current) {
+      html5QrcodeScannerRef.current.resume();
+    }
   };
 
   return (
     <div>
+        
       {scanning ? (
         <div id="reader" style={{ width: '100%' }}></div>
       ) : (
@@ -63,7 +72,7 @@ const QrScanner = () => {
             <button onClick={handleResume} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
               Continue
             </button>
-            {/* <Modal show={showModal} onClose={handleCloseModal} /> */}
+            <Modal show={showModal} onClose={handleCloseModal} />
           </div>
         </>
       )}
