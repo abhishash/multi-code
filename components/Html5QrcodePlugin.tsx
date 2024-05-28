@@ -22,7 +22,7 @@ const QrScanner = () => {
     if (scanning) {
       html5QrcodeScannerRef.current = new Html5QrcodeScanner(
         "reader",
-        { fps: 10, qrbox: 250, rememberLastUsedCamera: true } ,
+        { fps: 10, qrbox: 250, rememberLastUsedCamera: true, showTorchButtonIfSupported: true, showZoomSliderIfSupported: true, defaultZoomValueIfSupported: 2 } ,
         false
       );
 
