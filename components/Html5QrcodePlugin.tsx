@@ -1,51 +1,74 @@
 //@ts-nocheck
+import React, { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
-import { useEffect } from 'react';
+import Modal from './modal/modal';
 
-const qrcodeRegionId = "html5qr-code-full-region";
+const QrScanner = () => {
+  const [scanResult, setScanResult] = useState(null);
+  const [scanning, setScanning] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const html5QrcodeScannerRef = useRef(null);
 
-// Creates the configuration object for Html5QrcodeScanner.
-const createConfig = (props) => {
-    let config = {};
-    if (props.fps) {
-        config.fps = props.fps;
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    handleResume();
+  };
+
+  useEffect(() => {
+    if (scanning) {
+      html5QrcodeScannerRef.current = new Html5QrcodeScanner(
+        "reader",
+        { fps: 10, qrbox: 250 },
+        false
+      );
+
+      html5QrcodeScannerRef.current.render(onScanSuccess, onScanError);
+
+      function onScanSuccess(decodedText, decodedResult) {
+        setScanResult(decodedText);
+        setScanning(false);
+        html5QrcodeScannerRef.current.pause(true); // Clear the scanner and stop the camera
+        handleOpenModal();
+      }
+
+      function onScanError(errorMessage) {
+        console.error(errorMessage);
+      }
+
+      return () => {
+        html5QrcodeScannerRef.current.clear().catch((error) => {
+          console.error("Failed to clear html5QrcodeScanner. ", error);
+        });
+      };
     }
-    if (props.qrbox) {
-        config.qrbox = props.qrbox;
-    }
-    if (props.aspectRatio) {
-        config.aspectRatio = props.aspectRatio;
-    }
-    if (props.disableFlip !== undefined) {
-        config.disableFlip = props.disableFlip;
-    }
-    return config;
+  }, []);
+
+  const handleResume = () => {
+    setScanning(true);
+    html5QrcodeScannerRef.current.resume();
+  };
+
+  return (
+    <div>
+      {scanning ? (
+        <div id="reader" style={{ width: '100%' }}></div>
+      ) : (
+        <>
+          <div>Scan complete! Result: {scanResult}</div>
+          <div className="flex items-center justify-center h-screen">
+            <button onClick={handleResume} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+              Continue
+            </button>
+            {/* <Modal show={showModal} onClose={handleCloseModal} /> */}
+          </div>
+        </>
+      )}
+    </div>
+  );
 };
 
-const Html5QrcodePlugin = (props) => {
-
-    useEffect(() => {
-        // when component mounts
-        const config = createConfig(props);
-        const verbose = props.verbose === true;
-        // Suceess callback is required.
-        if (!(props.qrCodeSuccessCallback)) {
-            throw "qrCodeSuccessCallback is required callback.";
-        }
-        const html5QrcodeScanner = new Html5QrcodeScanner(qrcodeRegionId, config, verbose);
-        html5QrcodeScanner.render(props.qrCodeSuccessCallback, props.qrCodeErrorCallback);
-
-        // cleanup function when component will unmount
-        return () => {
-            html5QrcodeScanner.clear().catch(error => {
-                console.error("Failed to clear html5QrcodeScanner. ", error);
-            });
-        };
-    }, []);
-
-    return (
-        <div id={qrcodeRegionId} />
-    );
-};
-
-export default Html5QrcodePlugin;
+export default QrScanner;

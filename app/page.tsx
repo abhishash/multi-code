@@ -2,6 +2,7 @@
 
 "use client";
 import BarcodeScanner from "@/components/code-scanner";
+import QrScanner from "@/components/Html5QrcodePlugin";
 import Html5QrcodePlugin from "@/components/Html5QrcodePlugin";
 import { BarCodeIcon } from "@/components/icons/barcode-icon";
 import { CameraIcon } from "@/components/icons/camera-icon";
@@ -12,11 +13,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 const Home = () => {
-  const [decodedResults, setDecodedResults] = useState([]);
-  const onNewScanResult = (decodedText, decodedResult) => {
-      console.log("App [result]", decodedResult);
-      setDecodedResults(prev => [...prev, decodedResult]);
-  };
+  
   return (
     <>
       <section className="bg-white dark:bg-gray-900 min-h-screen">
@@ -56,13 +53,7 @@ const Home = () => {
                 <br />
                 <br />
                 <br />
-                <Html5QrcodePlugin
-                    fps={10}
-                    qrbox={250}
-                    disableFlip={false}
-                    qrCodeSuccessCallback={onNewScanResult}
-                />
-                <ResultContainerPlugin results={decodedResults} />
+                <QrScanner />
             </section>
         </div>
             
